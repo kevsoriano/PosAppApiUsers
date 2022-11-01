@@ -8,7 +8,7 @@
 		<version>2.7.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.jkngil.pos.api</groupId>
+	<groupId>com.jkngil.pos.api.users</groupId>
 	<artifactId>PosAppApiUsers</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>PosAppApiUsers</name>
