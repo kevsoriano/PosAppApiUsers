@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.jkngil.pos.users.data.UserEntity;
@@ -21,10 +22,12 @@ import com.jkngil.pos.users.shared.UserDto;
 public class UserServiceImpl implements UserService {
 	
 	UserRepository userRepository;
+	BCryptPasswordEncoder bCryptPasswordEncoder;
 	
 	@Autowired
-	public UserServiceImpl(UserRepository userRepository) {
+	public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
 		this.userRepository = userRepository;
+		this.bCryptPasswordEncoder = bCryptPasswordEncoder;
 	}
 
 	@Override
@@ -40,7 +43,7 @@ public class UserServiceImpl implements UserService {
 		
 		UserEntity userEntity = modelMapper.map(userDetails, UserEntity.class);
 		userEntity.setUserId(UUID.randomUUID().toString());
-		userEntity.setEncryptedPassword(userDetails.getPassword());
+		userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(userDetails.getPassword()));
 		UserEntity savedUser = userRepository.save(userEntity);
 		
 		UserDto returnValue = modelMapper.map(savedUser, UserDto.class);
