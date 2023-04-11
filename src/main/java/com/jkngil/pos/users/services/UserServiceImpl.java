@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +59,20 @@ public class UserServiceImpl implements UserService {
 		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 		
 		UserEntity userEntity = userRepository.findByUserId(userId);
+		
+		UserDto returnValue = modelMapper.map(userEntity, UserDto.class);
+		
+		return returnValue;
+	}
+	
+	@Override
+	public UserDto getUserByEmail(String email) {
+		ModelMapper modelMapper = new ModelMapper();
+		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+		
+		UserEntity userEntity = userRepository.findByEmail(email);
+		
+		if(userEntity == null) throw new UsernameNotFoundException(email);
 		
 		UserDto returnValue = modelMapper.map(userEntity, UserDto.class);
 		
@@ -108,6 +125,16 @@ public class UserServiceImpl implements UserService {
 			returnValue.add(userDto);
 		}
 		return returnValue;
+	}
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		UserEntity userEntity = userRepository.findByEmail(username);
+		
+		if(userEntity == null) throw new UsernameNotFoundException(username);
+		
+		return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), 
+				true, true, true, true, new ArrayList<>());
 	}
 
 }
