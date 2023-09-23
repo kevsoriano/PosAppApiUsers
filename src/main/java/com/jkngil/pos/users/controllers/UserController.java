@@ -34,6 +34,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/users")
+//@CrossOrigin
 public class UserController {
 	
 	@Autowired
@@ -96,7 +97,7 @@ public class UserController {
 	@GetMapping(produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public ResponseEntity<List<UserResponseModel>> listUsers(
 			@RequestParam(value="page", defaultValue="0") int page,
-			@RequestParam(value="limit", defaultValue="1000") int limit) {
+			@RequestParam(value="limit", defaultValue="25") int limit) {
 		List<UserResponseModel> returnValue = new ArrayList<>();
 		List<UserDto> users = userService.listUsers(page, limit);
 		
@@ -131,5 +132,14 @@ public class UserController {
 		AddressDetailsModel returnValue = modelMapper.map(addressesDto, AddressDetailsModel.class);
 		return ResponseEntity.status(HttpStatus.OK).body(returnValue);
 	}
+	
+//	microservices communication test
+//	@GetMapping(value="/{userId}/albums", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+//	public ResponseEntity<UserAlbumsResponseModel> getUserDetailsWithAlbums(@PathVariable("userId") String userId) {
+//		
+//		UserDto userDto = userService.getUserAlbums(userId);
+//		UserAlbumsResponseModel returnValue = new ModelMapper().map(userDto, UserAlbumsResponseModel.class);
+//		return ResponseEntity.status(HttpStatus.OK).body(returnValue);
+//	}
 	
 }

@@ -13,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.jkngil.pos.users.services.UserService;
@@ -43,8 +44,7 @@ public class WebSecurity {
 		AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
 		
 		AuthenticationFilter authenticationFilter = new AuthenticationFilter(authenticationManager, userService, env);
-		authenticationFilter.setFilterProcessesUrl(env.getProperty("login.url.path"));
-		
+		authenticationFilter.setFilterProcessesUrl(env.getProperty("login.url.path"));	
 		
 		http.csrf().disable();
 		
@@ -60,6 +60,9 @@ public class WebSecurity {
 		
 		http.headers().frameOptions().disable();
 		
+		http.headers(headers -> headers.addHeaderWriter(new StaticHeadersWriter("X-Custom-Security-Header","header-value")));
+		
 		return http.build();
 	}
+	
 }

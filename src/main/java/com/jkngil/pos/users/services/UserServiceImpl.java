@@ -7,17 +7,22 @@ import java.util.UUID;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.jkngil.pos.users.data.UserEntity;
 import com.jkngil.pos.users.data.UserRepository;
+import com.jkngil.pos.users.models.AlbumResponseModel;
 import com.jkngil.pos.users.shared.AddressDto;
 import com.jkngil.pos.users.shared.UserDto;
 
@@ -26,21 +31,28 @@ public class UserServiceImpl implements UserService {
 	
 	UserRepository userRepository;
 	BCryptPasswordEncoder bCryptPasswordEncoder;
+	RestTemplate restTemplate;
 	
 	@Autowired
-	public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+	public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, RestTemplate restTemplate) {
 		this.userRepository = userRepository;
 		this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+		this.restTemplate = restTemplate;
 	}
 
 	@Override
 	public UserDto createUser(UserDto userDetails) {
+		//	assign IDs to addresses
 		for(int i = 0; i<userDetails.getAddresses().size();i++) {
 			AddressDto address = userDetails.getAddresses().get(i);
 			address.setUserDetails(userDetails);
 			address.setAddressId(UUID.randomUUID().toString());
 			userDetails.getAddresses().set(i, address);
 		}
+		
+		//	check if roles and authorities exists
+		//	
+		//	check if roles and authorities exists
 		ModelMapper modelMapper = new ModelMapper();
 		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 		
@@ -136,5 +148,24 @@ public class UserServiceImpl implements UserService {
 		return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), 
 				true, true, true, true, new ArrayList<>());
 	}
+
+//	microservices communication test
+//	@Override
+//	public UserDto getUserAlbums(String userId) {
+//		ModelMapper modelMapper = new ModelMapper();
+//		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+//		
+//		UserEntity userEntity = userRepository.findByUserId(userId);
+//		if(userEntity==null) throw new UsernameNotFoundException("User not found");
+//		UserDto returnValue = modelMapper.map(userEntity, UserDto.class);
+//		
+//		String albumsUrl = "http://localhost:56638/users/12312312/albums";
+//		
+//		ResponseEntity<List<AlbumResponseModel>> albumListResponse = restTemplate.exchange(albumsUrl, HttpMethod.GET, null, new ParameterizedTypeReference<List<AlbumResponseModel>>());
+//		List<AlbumResponseModel> albumList = albumListResponse.getBody();
+//		returnValue.setAlbums(albumList);
+//		
+//		return returnValue;
+//	}
 
 }

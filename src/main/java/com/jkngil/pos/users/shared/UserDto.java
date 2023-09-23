@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
+import com.jkngil.pos.users.models.AlbumResponseModel;
+
 public class UserDto implements Serializable {
 
 	private static final long serialVersionUID = 2286415188650042593L;
@@ -16,6 +18,7 @@ public class UserDto implements Serializable {
 	private String encryptedPassword;
 	private List<AddressDto> addresses;
 	private Collection<RoleDto> roles;
+	private List<AlbumResponseModel> albums;
 
 	public long getId() {
 		return id;
@@ -87,5 +90,13 @@ public class UserDto implements Serializable {
 
 	public void setRoles(Collection<RoleDto> roles) {
 		this.roles = roles;
+	}
+
+	public List<AlbumResponseModel> getAlbums() {
+		return albums;
+	}
+
+	public void setAlbums(List<AlbumResponseModel> albums) {
+		this.albums = albums;
 	}
 }
