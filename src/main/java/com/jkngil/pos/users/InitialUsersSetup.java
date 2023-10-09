@@ -17,7 +17,7 @@ import com.jkngil.pos.users.data.RoleRepository;
 import com.jkngil.pos.users.data.UserEntity;
 import com.jkngil.pos.users.data.UserRepository;
 
-@Component
+//@Component
 public class InitialUsersSetup {
 
 	@Autowired

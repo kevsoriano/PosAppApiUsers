@@ -6,38 +6,48 @@ import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
+import com.jkngil.pos.users.data.AlbumsServiceClient;
 import com.jkngil.pos.users.data.UserEntity;
 import com.jkngil.pos.users.data.UserRepository;
 import com.jkngil.pos.users.models.AlbumResponseModel;
 import com.jkngil.pos.users.shared.AddressDto;
 import com.jkngil.pos.users.shared.UserDto;
 
+import feign.FeignException;
+
 @Service
 public class UserServiceImpl implements UserService {
 	
 	UserRepository userRepository;
 	BCryptPasswordEncoder bCryptPasswordEncoder;
-	RestTemplate restTemplate;
+//	RestTemplate restTemplate;
+	AlbumsServiceClient albumsServiceClient;
+	
+	Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	@Autowired
-	public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, RestTemplate restTemplate) {
+	public UserServiceImpl(
+			UserRepository userRepository, 
+			BCryptPasswordEncoder bCryptPasswordEncoder, 
+//			RestTemplate restTemplate
+			AlbumsServiceClient albumsServiceClient
+			) {
 		this.userRepository = userRepository;
 		this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-		this.restTemplate = restTemplate;
+//		this.restTemplate = restTemplate;
+		this.albumsServiceClient = albumsServiceClient;
 	}
 
 	@Override
@@ -150,22 +160,33 @@ public class UserServiceImpl implements UserService {
 	}
 
 //	microservices communication test
-//	@Override
-//	public UserDto getUserAlbums(String userId) {
-//		ModelMapper modelMapper = new ModelMapper();
-//		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-//		
-//		UserEntity userEntity = userRepository.findByUserId(userId);
-//		if(userEntity==null) throw new UsernameNotFoundException("User not found");
-//		UserDto returnValue = modelMapper.map(userEntity, UserDto.class);
-//		
-//		String albumsUrl = "http://localhost:56638/users/12312312/albums";
-//		
-//		ResponseEntity<List<AlbumResponseModel>> albumListResponse = restTemplate.exchange(albumsUrl, HttpMethod.GET, null, new ParameterizedTypeReference<List<AlbumResponseModel>>());
+	@Override
+	public UserDto getUserAlbums(String userId) {
+		UserEntity userEntity = userRepository.findByUserId(userId);
+		if(userEntity==null) throw new UsernameNotFoundException("User not found");
+		UserDto returnValue = new ModelMapper().map(userEntity, UserDto.class);
+		
+		String albumsUrl = "http://ALBUMS-WS/users/12312312/albums";
+		
+//		RestTemplate
+//		ResponseEntity<List<AlbumResponseModel>> albumListResponse = restTemplate.exchange(albumsUrl, HttpMethod.GET, null, new ParameterizedTypeReference<List<AlbumResponseModel>>() {});
 //		List<AlbumResponseModel> albumList = albumListResponse.getBody();
-//		returnValue.setAlbums(albumList);
-//		
-//		return returnValue;
-//	}
+		
+//		Handle FeignException with try/catch block
+//		List<AlbumResponseModel> albumList = null;
+//		try {
+//			albumList = albumsServiceClient.getAlbums(userId);
+//		} catch (FeignException e) {
+//			// TODO Auto-generated catch block
+//			logger.error(e.getLocalizedMessage());
+//		}
+		
+//		Handle FeignException with FeignErrorDecoder
+		List<AlbumResponseModel> albumList = albumsServiceClient.getAlbums(userId);
+		
+		returnValue.setAlbums(albumList);
+		
+		return returnValue;
+	}
 
 }

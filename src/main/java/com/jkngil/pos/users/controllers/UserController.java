@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.jkngil.pos.users.models.AddressDetailsModel;
+import com.jkngil.pos.users.models.UserAlbumsResponseModel;
 import com.jkngil.pos.users.models.UserRequestModel;
 import com.jkngil.pos.users.models.UserResponseModel;
 import com.jkngil.pos.users.services.AddressService;
@@ -134,12 +135,12 @@ public class UserController {
 	}
 	
 //	microservices communication test
-//	@GetMapping(value="/{userId}/albums", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
-//	public ResponseEntity<UserAlbumsResponseModel> getUserDetailsWithAlbums(@PathVariable("userId") String userId) {
-//		
-//		UserDto userDto = userService.getUserAlbums(userId);
-//		UserAlbumsResponseModel returnValue = new ModelMapper().map(userDto, UserAlbumsResponseModel.class);
-//		return ResponseEntity.status(HttpStatus.OK).body(returnValue);
-//	}
+	@GetMapping(value="/{userId}/albums", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+	public ResponseEntity<UserAlbumsResponseModel> getUserDetailsWithAlbums(@PathVariable("userId") String userId) {
+		
+		UserDto userDto = userService.getUserAlbums(userId);
+		UserAlbumsResponseModel returnValue = new ModelMapper().map(userDto, UserAlbumsResponseModel.class);
+		return ResponseEntity.status(HttpStatus.OK).body(returnValue);
+	}
 	
 }
