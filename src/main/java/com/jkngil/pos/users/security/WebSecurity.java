@@ -7,6 +7,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,6 +19,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.jkngil.pos.users.services.UserService;
 
+@EnableMethodSecurity(prePostEnabled=true)
 @Configuration
 @EnableWebSecurity
 public class WebSecurity {
@@ -56,6 +58,7 @@ public class WebSecurity {
 		.requestMatchers(HttpMethod.GET, "/actuator/**").access(new WebExpressionAuthorizationManager("hasIpAddress('" + env.getProperty("gateway.ip") + "')"))
 		.requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll()
 		.and()
+		.addFilter(new AuthorizationFilter(authenticationManager, env))
 		.addFilter(authenticationFilter)
 		.authenticationManager(authenticationManager)
 		.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);

@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +18,7 @@ import com.jkngil.pos.users.data.RoleRepository;
 import com.jkngil.pos.users.data.UserEntity;
 import com.jkngil.pos.users.data.UserRepository;
 
-//@Component
+@Component
 public class InitialUsersSetup {
 
 	@Autowired
@@ -26,8 +27,8 @@ public class InitialUsersSetup {
 	RoleRepository roleRepository;
 	@Autowired
 	UserRepository userRepository;
-//	@Autowired
-//	BCryptPasswordEnccoder bCryptPasswordEnccoder;
+	@Autowired
+	BCryptPasswordEncoder bCryptPasswordEnccoder;
 	
 	@EventListener
 	@Transactional
@@ -46,7 +47,7 @@ public class InitialUsersSetup {
 		adminUser.setLastName("Admin");
 		adminUser.setEmail("admin@admin.com");
 		adminUser.setUserId(UUID.randomUUID().toString());
-		adminUser.setEncryptedPassword("12345678");
+		adminUser.setEncryptedPassword(bCryptPasswordEnccoder.encode("12345678"));
 		adminUser.setRoles(Arrays.asList(roleAdmin));
 		
 		if(userRepository.findByEmail(adminUser.getEmail()) == null) userRepository.save(adminUser);
@@ -66,8 +67,7 @@ public class InitialUsersSetup {
 	private RoleEntity createRole(String name, Collection<AuthorityEntity> authorities) {
 		RoleEntity role = roleRepository.findByName(name);
 		if(role == null) {
-			role = new RoleEntity(name);
-			role.setAuthorities(authorities);
+			role = new RoleEntity(name, authorities);
 			roleRepository.save(role);
 		}
 		return role;

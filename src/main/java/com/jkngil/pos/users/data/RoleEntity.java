@@ -21,7 +21,7 @@ public class RoleEntity implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
-	@Column(nullable = false, length = 20, unique = true)
+	@Column(nullable = false, length = 20)
 	private String name;
 	@ManyToMany(mappedBy = "roles")
 	private Collection<UserEntity> users;
@@ -31,8 +31,9 @@ public class RoleEntity implements Serializable {
 
 	public RoleEntity() {}
 	
-	public RoleEntity(String name) {
+	public RoleEntity(String name, Collection<AuthorityEntity> authorities) {
 		this.name = name;
+		this.authorities= authorities;
 	}
 	
 	public long getId() {

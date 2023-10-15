@@ -67,6 +67,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 		
 		
 		String token = Jwts.builder()
+			.claim("scope", auth.getAuthorities())
 			.setSubject(userDetails.getUserId())
 			.setExpiration(Date.from(now.plusMillis(Long.parseLong(env.getProperty("token.expiration_time")))))
 			.setIssuedAt(Date.from(now))

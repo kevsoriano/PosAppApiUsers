@@ -17,7 +17,7 @@ public class AuthorityEntity implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
-	@Column(nullable = false, length = 20, unique = true)
+	@Column(nullable = false, length = 20)
 	private String name;
 	@ManyToMany(mappedBy = "authorities")
 	private Collection<RoleEntity> roles;

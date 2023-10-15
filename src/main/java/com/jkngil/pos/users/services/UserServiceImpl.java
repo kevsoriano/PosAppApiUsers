@@ -1,6 +1,8 @@
 package com.jkngil.pos.users.services;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,13 +23,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.jkngil.pos.users.data.AlbumsServiceClient;
+import com.jkngil.pos.users.data.AuthorityEntity;
+import com.jkngil.pos.users.data.RoleEntity;
+import com.jkngil.pos.users.data.RoleRepository;
 import com.jkngil.pos.users.data.UserEntity;
 import com.jkngil.pos.users.data.UserRepository;
 import com.jkngil.pos.users.models.AlbumResponseModel;
 import com.jkngil.pos.users.shared.AddressDto;
+import com.jkngil.pos.users.shared.RoleDto;
 import com.jkngil.pos.users.shared.UserDto;
-
-import feign.FeignException;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -34,6 +40,7 @@ public class UserServiceImpl implements UserService {
 	BCryptPasswordEncoder bCryptPasswordEncoder;
 //	RestTemplate restTemplate;
 	AlbumsServiceClient albumsServiceClient;
+	RoleRepository roleRepository;
 	
 	Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -42,16 +49,21 @@ public class UserServiceImpl implements UserService {
 			UserRepository userRepository, 
 			BCryptPasswordEncoder bCryptPasswordEncoder, 
 //			RestTemplate restTemplate
-			AlbumsServiceClient albumsServiceClient
+			AlbumsServiceClient albumsServiceClient,
+			RoleRepository roleRepository
 			) {
 		this.userRepository = userRepository;
 		this.bCryptPasswordEncoder = bCryptPasswordEncoder;
 //		this.restTemplate = restTemplate;
 		this.albumsServiceClient = albumsServiceClient;
+		this.roleRepository = roleRepository;
 	}
 
 	@Override
 	public UserDto createUser(UserDto userDetails) {
+		ModelMapper modelMapper = new ModelMapper();
+		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+		
 		//	assign IDs to addresses
 		for(int i = 0; i<userDetails.getAddresses().size();i++) {
 			AddressDto address = userDetails.getAddresses().get(i);
@@ -60,12 +72,17 @@ public class UserServiceImpl implements UserService {
 			userDetails.getAddresses().set(i, address);
 		}
 		
+		Collection<RoleDto> roles = new ArrayList<>();
 		//	check if roles and authorities exists
-		//	
-		//	check if roles and authorities exists
-		ModelMapper modelMapper = new ModelMapper();
-		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+		for(Iterator<RoleDto> iterator = userDetails.getRoles().iterator(); iterator.hasNext();) {
+			RoleDto role = iterator.next();
+			RoleEntity roleEntity = roleRepository.findByName(role.getName());
+			if(roleEntity != null) {
+				roles.add(modelMapper.map(roleEntity, RoleDto.class));
+			}
+		}
 		
+		userDetails.setRoles(roles);
 		UserEntity userEntity = modelMapper.map(userDetails, UserEntity.class);
 		userEntity.setUserId(UUID.randomUUID().toString());
 		userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(userDetails.getPassword()));
@@ -120,6 +137,7 @@ public class UserServiceImpl implements UserService {
 			addresses.add(address);
 		}
 		userDto.setAddresses(addresses);
+		
 		UserEntity user = modelMapper.map(userDto, UserEntity.class);
 		UserEntity updatedUser = userRepository.save(user);
 		
@@ -155,8 +173,21 @@ public class UserServiceImpl implements UserService {
 		
 		if(userEntity == null) throw new UsernameNotFoundException(username);
 		
+		Collection<GrantedAuthority> authorities = new ArrayList<>();
+		Collection<RoleEntity> roles = userEntity.getRoles();
+		
+		roles.forEach((role) -> {
+			authorities.add(new SimpleGrantedAuthority(role.getName()));
+			
+			Collection<AuthorityEntity> entities = role.getAuthorities();
+			entities.forEach((authority) -> {
+				authorities.add(new SimpleGrantedAuthority(authority.getName()));
+			});
+		});
+		
 		return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), 
-				true, true, true, true, new ArrayList<>());
+				true, true, true, true, 
+				authorities);
 	}
 
 //	microservices communication test
@@ -182,8 +213,9 @@ public class UserServiceImpl implements UserService {
 //		}
 		
 //		Handle FeignException with FeignErrorDecoder
+		logger.debug("Before calling the albums Microservice");
 		List<AlbumResponseModel> albumList = albumsServiceClient.getAlbums(userId);
-		
+		logger.debug("After calling the albums Microservice");
 		returnValue.setAlbums(albumList);
 		
 		return returnValue;
