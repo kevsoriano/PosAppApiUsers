@@ -73,7 +73,6 @@ public class UserServiceImpl implements UserService {
 		}
 		
 		Collection<RoleDto> roles = new ArrayList<>();
-		//	check if roles and authorities exists
 		for(Iterator<RoleDto> iterator = userDetails.getRoles().iterator(); iterator.hasNext();) {
 			RoleDto role = iterator.next();
 			RoleEntity roleEntity = roleRepository.findByName(role.getName());
