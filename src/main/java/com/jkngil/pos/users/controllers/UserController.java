@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jkngil.pos.users.data.UserEntity;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.modelmapper.convention.MatchingStrategies;
@@ -39,13 +40,13 @@ import jakarta.validation.Valid;
 @RequestMapping("/users")
 //@CrossOrigin
 public class UserController {
-	
+
 	@Autowired
 	UserService userService;
-	
+
 	@Autowired
 	Environment env;
-	
+
 	@Autowired
 	AddressService addressService;
 
@@ -58,12 +59,12 @@ public class UserController {
 	public ResponseEntity<UserResponseModel> createUser(@Valid @RequestBody UserRequestModel userDetails) {
 		ModelMapper modelMapper = new ModelMapper();
 		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-		
+
 		UserDto userDto = modelMapper.map(userDetails, UserDto.class);
-		UserDto createdUser = userService.createUser(userDto);
-		
+		UserDto createdUser = new UserDto(userService.createUser(new UserEntity(userDto)));
+
 		UserResponseModel returnValue = modelMapper.map(createdUser, UserResponseModel.class);
-		
+
 		return ResponseEntity.status(HttpStatus.CREATED).body(returnValue);
 	}
 
@@ -71,11 +72,11 @@ public class UserController {
 	public ResponseEntity<UserResponseModel> getUser(@PathVariable String userId) {
 		ModelMapper modelMapper = new ModelMapper();
 		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-		
+
 		UserDto userDto = userService.getUser(userId);
-		
+
 		UserResponseModel returnValue = modelMapper.map(userDto, UserResponseModel.class);
-		
+
 		return ResponseEntity.status(HttpStatus.OK).body(returnValue);
 	}
 
@@ -83,10 +84,10 @@ public class UserController {
 	public ResponseEntity<UserResponseModel>  updateUser(@PathVariable String userId, @RequestBody UserRequestModel userDetails) {
 		ModelMapper modelMapper = new ModelMapper();
 		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-		
+
 		UserDto userDto = modelMapper.map(userDetails, UserDto.class);
 		UserDto updatedUser = userService.updateUser(userId, userDto);
-		
+
 		UserResponseModel returnValue = modelMapper.map(updatedUser, UserResponseModel.class);
 		return ResponseEntity.status(HttpStatus.OK).body(returnValue);
 	}
@@ -103,31 +104,31 @@ public class UserController {
 			@RequestParam(value="limit", defaultValue="25") int limit) {
 		List<UserResponseModel> returnValue = new ArrayList<>();
 		List<UserDto> users = userService.listUsers(page, limit);
-		
+
 		for(UserDto user: users) {
 			ModelMapper modelMapper = new ModelMapper();
 			modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-			
+
 			UserResponseModel userDetails = modelMapper.map(user, UserResponseModel.class);
 			returnValue.add(userDetails);
 		}
-		
+
 		userService.listUsers(page, limit);
 		return ResponseEntity.status(HttpStatus.OK).body(returnValue);
 	}
-	
+
 	@GetMapping(value="/{userId}/addresses", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public ResponseEntity<List<AddressDetailsModel>> getUserAddresses(@PathVariable String userId) {
 		List<AddressDetailsModel> returnValue = new ArrayList<>();
 		List<AddressDto> addressesDto = addressService.getUserAddresses(userId);
-		
+
 		if(addressesDto != null & !addressesDto.isEmpty()) {
 			Type listType = new TypeToken<List<AddressDetailsModel>>() {}.getType();
 			returnValue = new ModelMapper().map(addressesDto, listType);
 		}
 		return ResponseEntity.status(HttpStatus.OK).body(returnValue);
 	}
-	
+
 	@GetMapping(value="/{userId}/addresses/{addressId}", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public ResponseEntity<AddressDetailsModel> getUserAddress(@PathVariable String userId, @PathVariable String addressId) {
 		ModelMapper modelMapper = new ModelMapper();
@@ -135,17 +136,17 @@ public class UserController {
 		AddressDetailsModel returnValue = modelMapper.map(addressesDto, AddressDetailsModel.class);
 		return ResponseEntity.status(HttpStatus.OK).body(returnValue);
 	}
-	
+
 //	microservices communication test
 	@GetMapping(value="/{userId}/albums", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	@PreAuthorize("hasAuthority('READ')")
 //	@PreAuthorize("hasRole('USER') or principal == #userId")
 //	@PostAuthorize("principal == returnObject.getBody().getUserId()")
 	public ResponseEntity<UserAlbumsResponseModel> getUserDetailsWithAlbums(@PathVariable("userId") String userId) {
-		
+
 		UserDto userDto = userService.getUserAlbums(userId);
 		UserAlbumsResponseModel returnValue = new ModelMapper().map(userDto, UserAlbumsResponseModel.class);
 		return ResponseEntity.status(HttpStatus.OK).body(returnValue);
 	}
-	
+
 }

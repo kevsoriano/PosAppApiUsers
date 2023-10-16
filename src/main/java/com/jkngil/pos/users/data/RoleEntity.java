@@ -3,6 +3,7 @@ package com.jkngil.pos.users.data;
 import java.io.Serializable;
 import java.util.Collection;
 
+import com.jkngil.pos.users.shared.RoleDto;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,7 +17,7 @@ import jakarta.persistence.ManyToMany;
 
 @Entity(name = "roles")
 public class RoleEntity implements Serializable {
-	
+
 	private static final long serialVersionUID = -6064460558367844954L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -30,12 +31,18 @@ public class RoleEntity implements Serializable {
 	private Collection<AuthorityEntity> authorities;
 
 	public RoleEntity() {}
-	
+
+	public RoleEntity(RoleDto dto) {
+		id = dto.getId();
+		name = dto.getName();
+		//TODO - add setting of users and authorities
+	}
+
 	public RoleEntity(String name, Collection<AuthorityEntity> authorities) {
 		this.name = name;
 		this.authorities= authorities;
 	}
-	
+
 	public long getId() {
 		return id;
 	}

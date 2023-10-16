@@ -1,22 +1,15 @@
 package com.jkngil.pos.users.data;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.jkngil.pos.users.shared.UserDto;
+import jakarta.persistence.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
 
 @Entity(name = "users")
 public class UserEntity implements Serializable {
@@ -37,9 +30,30 @@ public class UserEntity implements Serializable {
 	@OneToMany(mappedBy = "userDetails", cascade = CascadeType.ALL)
 	@LazyCollection(LazyCollectionOption.FALSE)
 	private List<AddressEntity> addresses;
-	@ManyToMany(cascade = { CascadeType.PERSIST }, fetch = FetchType.EAGER)
+	@ManyToMany(cascade = { CascadeType.ALL }, fetch = FetchType.EAGER)
 	@JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "users_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "roles_id", referencedColumnName = "id"))
-	private Collection<RoleEntity> roles;
+	private List<RoleEntity> roles;
+
+	@Transient
+	private String password;
+
+	public UserEntity() {}
+	public UserEntity(UserDto dto) {
+		id = dto.getId();
+		userId = dto.getUserId();
+		firstName = dto.getFirstName();
+		lastName = dto.getLastName();
+		email = dto.getEmail();
+		encryptedPassword = dto.getEncryptedPassword();
+		//TODO - add setting of addresses
+		if (CollectionUtils.isNotEmpty(dto.getRoles())) {
+			List<RoleEntity> roles = new ArrayList<>();
+			dto.getRoles().forEach(r -> roles.add(new RoleEntity(r)));
+			this.roles = roles;
+		}
+
+		password = dto.getPassword();
+	}
 
 	public long getId() {
 		return id;
@@ -97,12 +111,19 @@ public class UserEntity implements Serializable {
 		this.addresses = addresses;
 	}
 
-	public Collection<RoleEntity> getRoles() {
+	public List<RoleEntity> getRoles() {
 		return roles;
 	}
 
-	public void setRoles(Collection<RoleEntity> roles) {
+	public void setRoles(List<RoleEntity> roles) {
 		this.roles = roles;
 	}
 
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
 }
