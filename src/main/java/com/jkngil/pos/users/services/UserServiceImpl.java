@@ -58,42 +58,40 @@ public class UserServiceImpl implements UserService {
 		this.roleRepository = roleRepository;
 	}
 
-//	@Override
-//	public UserDto createUser(UserDto userDetails) {
-//		ModelMapper modelMapper = new ModelMapper();
-//		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-//
-//		//	assign IDs to addresses
-//		for(int i = 0; i<userDetails.getAddresses().size();i++) {
-//			AddressDto address = userDetails.getAddresses().get(i);
-//			address.setUserDetails(userDetails);
-//			address.setAddressId(UUID.randomUUID().toString());
-//			userDetails.getAddresses().set(i, address);
-//		}
-//
-//		Collection<RoleDto> roles = new ArrayList<>();
-//		for(Iterator<RoleDto> iterator = userDetails.getRoles().iterator(); iterator.hasNext();) {
-//			RoleDto role = iterator.next();
-//			RoleEntity roleEntity = roleRepository.findByName(role.getName());
-//			if(roleEntity != null) {
-//				roles.add(modelMapper.map(roleEntity, RoleDto.class));
-//			}
-//		}
-//
-//		userDetails.setRoles(roles);
-//		UserEntity userEntity = modelMapper.map(userDetails, UserEntity.class);
-//		userEntity.setUserId(UUID.randomUUID().toString());
-//		userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(userDetails.getPassword()));
-//		UserEntity savedUser = userRepository.save(userEntity);
-//
-//		UserDto returnValue = modelMapper.map(savedUser, UserDto.class);
-//		return returnValue;
-//	}
-
-
-	public UserEntity createUser(UserEntity userDetails) {
+	@Override
+	public UserDto createUser(UserDto userDetails) {
 		ModelMapper modelMapper = new ModelMapper();
 		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+
+		for(int i = 0; i<userDetails.getAddresses().size();i++) {
+			AddressDto address = userDetails.getAddresses().get(i);
+			address.setUserDetails(userDetails);
+			address.setAddressId(UUID.randomUUID().toString());
+			userDetails.getAddresses().set(i, address);
+		}
+		
+		UserEntity userEntity = modelMapper.map(userDetails, UserEntity.class);
+		userEntity.setUserId(UUID.randomUUID().toString());
+		userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(userDetails.getPassword()));
+		
+		if (userDetails.getRoles() != null && !userDetails.getRoles().isEmpty()) { 
+			List<String> roleNames = new ArrayList<>();
+			userDetails.getRoles().forEach(role -> {
+				roleNames.add(role.getName());
+			});
+			userEntity.setRoles(roleRepository.findByNameIn(roleNames));
+		}
+		
+		UserEntity savedUser = userRepository.save(userEntity);
+
+		UserDto returnValue = modelMapper.map(savedUser, UserDto.class);
+		return returnValue;
+	}
+
+
+//	public UserEntity createUser(UserEntity userDetails) {
+//		ModelMapper modelMapper = new ModelMapper();
+//		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 
 		//TODO - fix saving of user's addresses
 
@@ -104,19 +102,18 @@ public class UserServiceImpl implements UserService {
 //			address.setAddressId(UUID.randomUUID().toString());
 //			userDetails.getAddresses().set(i, address);
 //		}
-
-
-		if (CollectionUtils.isNotEmpty(userDetails.getRoles())) {
-			List<String> roleNames = userDetails.getRoles().stream()
-							.map(RoleEntity::getName)
-							.toList();
-			userDetails.setRoles(roleRepository.findByNameIn(roleNames));
-		}
-		UserEntity userEntity = modelMapper.map(userDetails, UserEntity.class);
-		userEntity.setUserId(UUID.randomUUID().toString());
-		userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(userDetails.getPassword()));
-		return userRepository.save(userEntity);
-	}
+//
+//		if (CollectionUtils.isNotEmpty(userDetails.getRoles())) {
+//			List<String> roleNames = userDetails.getRoles().stream()
+//							.map(RoleEntity::getName)
+//							.toList();
+//			userDetails.setRoles(roleRepository.findByNameIn(roleNames));
+//		}
+//		UserEntity userEntity = modelMapper.map(userDetails, UserEntity.class);
+//		userEntity.setUserId(UUID.randomUUID().toString());
+//		userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(userDetails.getPassword()));
+//		return userRepository.save(userEntity);
+//	}
 
 	@Override
 	public UserDto getUser(String userId) {
@@ -218,7 +215,7 @@ public class UserServiceImpl implements UserService {
 
 //	microservices communication test
 	@Override
-	public UserDto getUserAlbums(String userId) {
+	public UserDto getUserAlbums(String userId, String authorization) {
 		UserEntity userEntity = userRepository.findByUserId(userId);
 		if(userEntity==null) throw new UsernameNotFoundException("User not found");
 		UserDto returnValue = new ModelMapper().map(userEntity, UserDto.class);
@@ -240,7 +237,7 @@ public class UserServiceImpl implements UserService {
 
 //		Handle FeignException with FeignErrorDecoder
 		logger.debug("Before calling the albums Microservice");
-		List<AlbumResponseModel> albumList = albumsServiceClient.getAlbums(userId);
+		List<AlbumResponseModel> albumList = albumsServiceClient.getAlbums(userId, authorization);
 		logger.debug("After calling the albums Microservice");
 		returnValue.setAlbums(albumList);
 

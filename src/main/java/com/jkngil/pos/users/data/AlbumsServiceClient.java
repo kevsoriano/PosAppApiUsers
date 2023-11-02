@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.jkngil.pos.users.models.AlbumResponseModel;
 
@@ -19,9 +20,10 @@ public interface AlbumsServiceClient {
 	@GetMapping("/users/{id}/albums")
 	@Retry(name="albums-ws")
 	@CircuitBreaker(name="albums-ws", fallbackMethod="getAlbumsFallback")
-	public List<AlbumResponseModel> getAlbums(@PathVariable String id);
+	public List<AlbumResponseModel> getAlbums(@PathVariable String id, 
+			@RequestHeader("Authorization") String authorization);
 	
-	default List<AlbumResponseModel> getAlbumsFallback(String id, Throwable exception) {
+	default List<AlbumResponseModel> getAlbumsFallback(String id, String authorization, Throwable exception) {
 		System.out.println("Param: " + id);
 		System.out.println("Exception took place: " + exception.getMessage());
 		return new ArrayList<>();

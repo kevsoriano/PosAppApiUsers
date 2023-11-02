@@ -1,6 +1,5 @@
 package com.jkngil.pos.users.models;
 
-import java.util.Collection;
 import java.util.List;
 
 import jakarta.validation.constraints.Email;
@@ -21,13 +20,13 @@ public class UserRequestModel {
 	@NotNull
 	private List<AddressDetailsModel> addresses;
 	@NotNull
-	private Collection<RoleDetailsModel> roles;
+	private List<RoleDetailsModel> roles;
 
-	public Collection<RoleDetailsModel> getRoles() {
+	public List<RoleDetailsModel> getRoles() {
 		return roles;
 	}
 
-	public void setRoles(Collection<RoleDetailsModel> roles) {
+	public void setRoles(List<RoleDetailsModel> roles) {
 		this.roles = roles;
 	}
 

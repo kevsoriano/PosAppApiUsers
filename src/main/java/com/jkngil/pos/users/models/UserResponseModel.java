@@ -9,7 +9,7 @@ public class UserResponseModel {
 	private String lastName;
 	private String email;
 	private List<AddressDetailsModel> addresses;
-	private Collection<RoleDetailsModel> roles;
+	private List<RoleDetailsModel> roles;
 
 	public String getUserId() {
 		return userId;
@@ -51,11 +51,11 @@ public class UserResponseModel {
 		this.addresses = addresses;
 	}
 
-	public Collection<RoleDetailsModel> getRoles() {
+	public List<RoleDetailsModel> getRoles() {
 		return roles;
 	}
 
-	public void setRoles(Collection<RoleDetailsModel> roles) {
+	public void setRoles(List<RoleDetailsModel> roles) {
 		this.roles = roles;
 	}
 

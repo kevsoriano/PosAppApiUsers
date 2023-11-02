@@ -4,7 +4,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.jkngil.pos.users.data.UserEntity;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.modelmapper.convention.MatchingStrategies;
@@ -13,7 +12,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -50,10 +49,10 @@ public class UserController {
 	@Autowired
 	AddressService addressService;
 
-	@GetMapping(value="/status", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
-	public String getStatus() {
-		return "Users microservice is up" + ", with token = " + env.getProperty("token.secret");
-	}
+//	@GetMapping(value="/status", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+//	public String getStatus() {
+//		return "Users microservice is up" + ", with token = " + env.getProperty("token.secret");
+//	}
 
 	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public ResponseEntity<UserResponseModel> createUser(@Valid @RequestBody UserRequestModel userDetails) {
@@ -61,7 +60,8 @@ public class UserController {
 		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 
 		UserDto userDto = modelMapper.map(userDetails, UserDto.class);
-		UserDto createdUser = new UserDto(userService.createUser(new UserEntity(userDto)));
+//		UserDto createdUser = new UserDto(userService.createUser(new UserEntity(userDto)));
+		UserDto createdUser = userService.createUser(userDto);
 
 		UserResponseModel returnValue = modelMapper.map(createdUser, UserResponseModel.class);
 
@@ -139,12 +139,13 @@ public class UserController {
 
 //	microservices communication test
 	@GetMapping(value="/{userId}/albums", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
-	@PreAuthorize("hasAuthority('READ')")
+	@PreAuthorize("hasAuthority('READ_AUTHORITY')")
 //	@PreAuthorize("hasRole('USER') or principal == #userId")
 //	@PostAuthorize("principal == returnObject.getBody().getUserId()")
-	public ResponseEntity<UserAlbumsResponseModel> getUserDetailsWithAlbums(@PathVariable("userId") String userId) {
+	public ResponseEntity<UserAlbumsResponseModel> getUserDetailsWithAlbums(@PathVariable("userId") String userId, 
+			@RequestHeader("Authorization") String authorization) {
 
-		UserDto userDto = userService.getUserAlbums(userId);
+		UserDto userDto = userService.getUserAlbums(userId, authorization);
 		UserAlbumsResponseModel returnValue = new ModelMapper().map(userDto, UserAlbumsResponseModel.class);
 		return ResponseEntity.status(HttpStatus.OK).body(returnValue);
 	}

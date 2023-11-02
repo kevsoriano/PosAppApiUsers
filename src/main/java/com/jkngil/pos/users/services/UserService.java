@@ -8,10 +8,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import com.jkngil.pos.users.shared.UserDto;
 
 public interface UserService extends UserDetailsService {
-//	UserDto createUser(UserDto userDetails);
-	UserEntity createUser(UserEntity userEntity);
+	UserDto createUser(UserDto userDetails);
+//	UserEntity createUser(UserEntity userEntity);
 	UserDto getUser(String userId);
-	UserDto getUserAlbums(String userId);
+	UserDto getUserAlbums(String userId, String authorization);
 	UserDto getUserByEmail(String email);
 	UserDto updateUser(String userId, UserDto userDetails);
 	void deleteUser(String userId);
