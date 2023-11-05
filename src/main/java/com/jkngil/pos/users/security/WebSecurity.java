@@ -56,6 +56,7 @@ public class WebSecurity {
 		.requestMatchers(HttpMethod.PUT, "/users/**").access(new WebExpressionAuthorizationManager("hasIpAddress('" + env.getProperty("gateway.ip") + "')"))
 		.requestMatchers(HttpMethod.DELETE, "/users/**").access(new WebExpressionAuthorizationManager("hasIpAddress('" + env.getProperty("gateway.ip") + "')"))
 		.requestMatchers(HttpMethod.GET, "/actuator/**").access(new WebExpressionAuthorizationManager("hasIpAddress('" + env.getProperty("gateway.ip") + "')"))
+		.requestMatchers(HttpMethod.GET, "/roles").access(new WebExpressionAuthorizationManager("hasIpAddress('" + env.getProperty("gateway.ip") + "')"))
 		.requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll()
 		.and()
 		.addFilter(new AuthorizationFilter(authenticationManager, env))
