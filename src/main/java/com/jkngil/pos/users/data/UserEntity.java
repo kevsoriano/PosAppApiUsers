@@ -33,8 +33,8 @@ public class UserEntity implements Serializable {
 	@JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "users_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "roles_id", referencedColumnName = "id"))
 	private List<RoleEntity> roles;
 
-	@Transient
-	private String password;
+//	@Transient
+//	private String password;
 
 	public UserEntity() {}
 	public UserEntity(UserDto dto) {
@@ -51,7 +51,7 @@ public class UserEntity implements Serializable {
 			this.roles = roles;
 		}
 
-		password = dto.getPassword();
+//		password = dto.getPassword();
 	}
 
 	public long getId() {
@@ -118,11 +118,11 @@ public class UserEntity implements Serializable {
 		this.roles = roles;
 	}
 
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
+//	public String getPassword() {
+//		return password;
+//	}
+//
+//	public void setPassword(String password) {
+//		this.password = password;
+//	}
 }

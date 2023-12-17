@@ -28,7 +28,7 @@ public class AddressEntity implements Serializable {
 	@Column(length = 10, nullable = false)
 	private String type;
 	@ManyToOne
-	@JoinColumn(name = "users_id")
+	@JoinColumn(name = "user_id")
 	private UserEntity userDetails;
 
 	public long getId() {
